@@ -12,59 +12,14 @@ import java.util.Locale;
 @RestControllerAdvice
 public class TradeSettlementGlobalExceptionHandler {
 
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGenericException(
-            Exception ex,
-            WebRequest request
-    ) {
-        ErrorResponse error = new ErrorResponse(
-        ) {
-            @Override
-            public HttpStatusCode getStatusCode() {
-                return null;
-            }
-
-            @Override
-            public HttpHeaders getHeaders() {
-                return ErrorResponse.super.getHeaders();
-            }
-
-            @Override
-            public ProblemDetail getBody() {
-                return null;
-            }
-
-            @Override
-            public String getTypeMessageCode() {
-                return ErrorResponse.super.getTypeMessageCode();
-            }
-
-            @Override
-            public String getTitleMessageCode() {
-                return ErrorResponse.super.getTitleMessageCode();
-            }
-
-            @Override
-            public String getDetailMessageCode() {
-                return ErrorResponse.super.getDetailMessageCode();
-            }
-
-            @Override
-            public Object[] getDetailMessageArguments() {
-                return ErrorResponse.super.getDetailMessageArguments();
-            }
-
-            @Override
-            public Object[] getDetailMessageArguments(MessageSource messageSource, Locale locale) {
-                return ErrorResponse.super.getDetailMessageArguments(messageSource, locale);
-            }
-
-            @Override
-            public ProblemDetail updateAndGetBody(MessageSource messageSource, Locale locale) {
-                return ErrorResponse.super.updateAndGetBody(messageSource, locale);
-            }
-        };
-        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    @ExceptionHandler(KafkaUnavailableException.class)
+    public ResponseEntity<String> handleKafkaUnavailable(KafkaUnavailableException ex) {
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body("Kafka service is currently unavailable. Please retry later.");
+    }
+    @ExceptionHandler(KafkaMessageFormatException.class)
+    public ResponseEntity<String> handleKafkaFormat(KafkaMessageFormatException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body("Invalid Kafka message format: " + ex.getMessage());
     }
 }

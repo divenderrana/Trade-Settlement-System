@@ -9,6 +9,8 @@ import com.trade.dto.TradeStatus;
 import com.trade.entity.IdempotencyKey;
 import com.trade.entity.TradeEntity;
 import com.trade.entity.TradeSettlementOutBoxEntity;
+import com.trade.exception.KafkaMessageFormatException;
+import com.trade.exception.KafkaUnavailableException;
 import com.trade.mapper.TradeMapper;
 import com.trade.mapper.TradeOutBoxMapper;
 import com.trade.producer.SendToDeadLetterQueueProducer;
@@ -109,12 +111,12 @@ public class TradeConsumer {
                 acknowledgment.acknowledge();
 
             }
-        } catch (Exception e) {
-            logger.error("Error processing request message {}", messageId, e);
-            //handleProcessingFailure(message, correlationId, record, e, acknowledgment);
-
+        }  catch (KafkaUnavailableException ex) {
+            throw new KafkaUnavailableException("Kafka consumer failed", ex);
         }
-    }
+        catch (KafkaMessageFormatException ex) {
+            throw new KafkaMessageFormatException("Invalid message format", ex);}
+        }
 
 
     public static boolean isDecimal(BigDecimal number) {
